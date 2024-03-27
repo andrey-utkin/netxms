@@ -119,6 +119,12 @@ static void CpuUsageCollectorUnlocked()
 
       maxCpu = std::max(cpu, maxCpu);
 
+      if (cpu > m_maxCPU) {
+         // don't write any data as there's no buffer for that yet.
+         // But continue the loop to see the final highest number, and grow the tables.
+         continue;
+      }
+
       uint64_t userDelta, niceDelta, systemDelta, idleDelta;
       uint64_t iowaitDelta, irqDelta, softirqDelta, stealDelta;
       uint64_t guestDelta;
@@ -177,6 +183,10 @@ static void CpuUsageCollectorUnlocked()
       m_softirq[cpu] = softirq;
       m_steal[cpu] = steal;
       m_guest[cpu] = guest;
+   }
+
+   if (maxCpu > m_maxCPU) {
+      // realloc tables, refill etc
    }
 
    /* go to the next slot */
