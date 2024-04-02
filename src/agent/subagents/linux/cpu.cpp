@@ -50,6 +50,12 @@ static float *m_cpuUsageSteal;
 static float *m_cpuUsageGuest;
 static int m_currentSlot = 0;
 static int m_maxCPU = 0;
+static bool *m_cpuLive;
+
+static inline float *tableCellAddress(float *table, int cpuIndex, int position)
+{
+   return table + (cpuIndex * CPU_USAGE_SLOTS) + position;
+}
 
 /**
  * CPU usage collector
@@ -72,6 +78,7 @@ static void CpuUsageCollectorUnlocked()
    uint32_t cpu = 0;
    uint32_t maxCpu = 0;
    char buffer[1024];
+   bool mustGrowTables = false;
 
    if (m_currentSlot == CPU_USAGE_SLOTS)
    {
@@ -120,8 +127,10 @@ static void CpuUsageCollectorUnlocked()
       maxCpu = std::max(cpu, maxCpu);
 
       if (cpu > m_maxCPU) {
-         // don't write any data as there's no buffer for that yet.
+         // Don't write any data as there's no buffer for that yet.
          // But continue the loop to see the final highest number, and grow the tables.
+	 mustGrowTables = true;
+	 someCpuDataEmpty = true;
          continue;
       }
 
@@ -150,8 +159,8 @@ static void CpuUsageCollectorUnlocked()
 
       /* update detailed stats */
 #define UPDATE(delta, target) { \
-         if (delta > 0) { *(target + (cpu * CPU_USAGE_SLOTS) + m_currentSlot) = (float)delta / onePercent; } \
-         else { *(target + (cpu * CPU_USAGE_SLOTS) + m_currentSlot) = 0; } \
+         if (delta > 0) { *tableCellAddress(target, cpu, m_currentSlot) = (float)delta / onePercent; } \
+         else { *tableCellAddress(target, cpu, m_currentSlot) = 0; } \
       }
 
       UPDATE(userDelta, m_cpuUsageUser);
@@ -185,8 +194,15 @@ static void CpuUsageCollectorUnlocked()
       m_guest[cpu] = guest;
    }
 
-   if (maxCpu > m_maxCPU) {
-      // realloc tables, refill etc
+   if (mustGrowTables) {
+      // Don't worry, we've got the mutex, we can do whatever we want and nobody will see!
+      //
+      // realloc tables
+      // - alloc new
+      // - set someCpuDataEmpty = true
+      // - fill new CPUs
+      // refill etc
+      ReinitTables();
    }
 
    /* go to the next slot */
@@ -256,6 +272,7 @@ void StartCpuUsageCollector()
    uint32_t cpuCount = GetCpuCountFromStat();
 
    m_cpuUsageMutex.lock();
+   m_cpuLive = MemAllocArray<bool>(cpuCount);
    m_cpuUsage = MemAllocArray<float>(CPU_USAGE_SLOTS * (cpuCount + 1));
    m_cpuUsageUser = MemAllocArray<float>(CPU_USAGE_SLOTS * (cpuCount + 1));
    m_cpuUsageNice = MemAllocArray<float>(CPU_USAGE_SLOTS * (cpuCount + 1));
@@ -288,6 +305,10 @@ void StartCpuUsageCollector()
    CpuUsageCollectorUnlocked();
 
    // fill all slots with current cpu usage
+   for (int i = 0; i < cpuCount; i++)
+   {
+      m_cpuLive[cpuIndex] = true;
+   }
 #define FILL(x) memcpy(x + i, x, sizeof(float));
    for (uint32_t i = 0; i < (CPU_USAGE_SLOTS * cpuCount) - 1; i++)
    {
