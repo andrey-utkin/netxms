@@ -24,6 +24,63 @@
 #include <openssl/ssl.h>
 
 /**
+ * Send data once, await response within timeout and checks for "completion" with a supplied regex
+ *
+ * @param hSocket TCP socket connected to the surveyed application server
+ * @param debugTag tag for nxlog_debug_tag()
+ * @param timeout Timeout in milliseconds
+ * @param ourLine Data we send to initiate StartTLS
+ * @param expectRegex Pattern which a complete response must match
+ * @return True if successful, false otherwise
+ */
+static bool GenericStartTls(SOCKET hSocket, const TCHAR *debugTag, uint32_t timeout, const char *ourLine, const char *expectRegex)
+{
+   if (!NetWrite(hSocket, ourLine, strlen(ourLine)))
+   {
+      nxlog_debug_tag(debugTag, 9, _T("Failed to send our line"));
+      return false;
+   }
+
+   int64_t startTime = GetCurrentTimeMs();
+   int64_t deadlineTime = startTime + timeout;
+   char buf[1024] = {0};
+   char *ptr = buf;
+   size_t bufAvail = sizeof(buf);
+
+   while (true)
+   {
+      if (SocketCanRead(hSocket, timeout))
+      {
+         ssize_t bytesRead = NetRead(hSocket, ptr, bufAvail - 1);
+         if (bytesRead <= 0)
+         {
+            nxlog_debug_tag(debugTag, 9, _T("NetRead returned non-positive value %zd"), bytesRead);
+            return false;
+         }
+         assert(bytesRead > 0 && bytesRead <= bufAvail - 1);
+         ptr += bytesRead;
+         bufAvail -= bytesRead;
+      }
+
+      // check if the response is complete;
+      if (RegexpMatchA(buf, expectRegex, false))
+      {
+         nxlog_debug_tag(debugTag, 7, _T("Response complete, ready to start TLS"));
+         return true;
+      }
+
+      int64_t now = GetCurrentTimeMs();
+      if (now >= deadlineTime)
+      {
+         nxlog_debug_tag(debugTag, 7, _T("Timeout"));
+         return false;
+      }
+      timeout = static_cast<uint32_t>(deadlineTime - now);
+   }
+   return false;
+}
+
+/**
  * Perform protocol-specific STARTTLS sequence on a connected socket
  *
  * @param hSocket TCP socket connected to the surveyed application server
@@ -32,86 +89,30 @@
  * @param proto   Application protocol string. Supported values: "smtp"
  * @return True if successful, false otherwise
  */
-static bool SetupStartTLSSession(SOCKET hSocket, uint32_t timeout, const char *host, const char *proto)
+static bool SetupStartTLSSession(SOCKET hSocket, uint32_t timeout, const char *host, const char *proto, const TCHAR *debugTag)
 {
+// Newline regex: \r (which might be omitted), then \n
+#define NL_RE "\\r?\\n"
    if (!strcmp(proto, "smtp"))
    {
-      // We send two commands and expect three batches of response lines,
-      // each batch ending with a line matching "^(220|250) .*\r\n"
       const char ourLine[] = "EHLO mail.example.com.\r\nSTARTTLS\r\n";
-      if (!NetWrite(hSocket, ourLine, strlen(ourLine)))
-      {
-         nxlog_debug_tag(DEBUG_TAG, 9, _T("SetupStartTLSSession(%hs): SMTP: failed to send our line"), host);
-         return false;
-      }
-
-      int64_t startTime = GetCurrentTimeMs();
-      int64_t deadlineTime = startTime + timeout;
-      char buf[1024] = {0};
-      char *ptr = buf;
-      size_t bufAvail = sizeof(buf);
-      char *line = buf;
-      uint32_t finalLinesRead = 0;
-
-      while (true)
-      {
-         if (SocketCanRead(hSocket, timeout))
-         {
-            ssize_t bytesRead = NetRead(hSocket, ptr, bufAvail - 1);
-            nxlog_debug_tag(DEBUG_TAG, 9, _T("SetupStartTLSSession(%hs): NetRead() returned %zd"), host, bytesRead);
-            if (bytesRead <= 0)
-            {
-               nxlog_debug_tag(DEBUG_TAG, 9, _T("SetupStartTLSSession(%hs): NetRead returned non-positive value %zd"), host, bytesRead);
-               return false;
-            }
-            assert(bytesRead > 0 && bytesRead <= bufAvail - 1);
-            ptr += bytesRead;
-            bufAvail -= bytesRead;
-         }
-
-         // check if the response is complete;
-         // expected response structure:
-         // 220 some string in response to connection establishment\r\n
-         // 250-any number of such strings\r\n
-         // 250 some string in response to EHLO\r\n
-         // 220 string in response to STARTTLS\r\n
-         const int minLineLen = 6; // Lines shouldn't be shorter than "250-\r\n"
-         while (ptr - line >= minLineLen)
-         {
-            char *lineEnd = strstr(line, "\r\n");
-            bool lineIsFinal = false;
-            if (lineEnd != nullptr)
-            {
-               *lineEnd = '\0';
-               if ((line[3] == ' ') &&
-                    (!strncmp(line, "220 ", 4)
-                     || !strncmp(line, "250 ", 4)))
-               {
-                  lineIsFinal = true;
-                  finalLinesRead++;
-               }
-               nxlog_debug_tag(DEBUG_TAG, 7, _T("SetupStartTLSSession(%hs): SMTP: %hs response line '%hs'"), host, (lineIsFinal ? "final" : "non-final"), line);
-               if (finalLinesRead == 3)
-               {
-                  nxlog_debug_tag(DEBUG_TAG, 7, _T("SetupStartTLSSession(%hs): SMTP: response complete, ready to start TLS"), host);
-                  return true;
-               }
-               line = lineEnd + 2;
-            }
-         }
-
-         int64_t now = GetCurrentTimeMs();
-         if (now >= deadlineTime)
-         {
-            nxlog_debug_tag(DEBUG_TAG, 7, _T("SetupStartTLSSession(%hs): timeout, had %") INT64_FMT _T(" ms"), host, deadlineTime - startTime);
-            return false;
-         }
-         timeout = static_cast<uint32_t>(deadlineTime - now);
-         nxlog_debug_tag(DEBUG_TAG, 7, _T("SetupStartTLSSession(%hs): timeout reduced to %u ms"), host, timeout);
-      }
-      return false;
+      const char expectRegex[] = NL_RE "220 .*" NL_RE;
+      return GenericStartTls(hSocket, debugTag, timeout, ourLine, expectRegex);
+   }
+   else if (!strcmp(proto, "imap"))
+   {
+      const char ourLine[] = "cmd1 CAPABILITY\r\ncmd2 STARTTLS\r\n";
+      const char expectRegex[] = NL_RE "cmd2 .*" NL_RE;
+      return GenericStartTls(hSocket, debugTag, timeout, ourLine, expectRegex);
+   }
+   else if (!strcmp(proto, "pop3"))
+   {
+      const char ourLine[] = "STLS\r\n";
+      const char expectRegex[] = "\\+OK .*" NL_RE "\\+OK .*" NL_RE;
+      return GenericStartTls(hSocket, debugTag, timeout, ourLine, expectRegex);
    }
    return false;
+#undef NL_RE
 }
 
 /**
@@ -328,9 +329,13 @@ LONG H_TLSCertificateInfo(const TCHAR *parameters, const TCHAR *arg, TCHAR *valu
    }
 
    if (startTlsInProto[0] != '\0') {
-      bool startTlsSuccess = SetupStartTLSSession(hSocket, timeout, (sniServerName[0] != 0) ? sniServerName : host, startTlsInProto);
+      const char *serverName = (sniServerName[0] != 0) ? sniServerName : host;
+      TCHAR debugTag[256];
+      _sntprintf(debugTag, sizeof(debugTag), _T("%hs StartTLS %hs:%u"), startTlsInProto, serverName, port);
+
+      bool startTlsSuccess = SetupStartTLSSession(hSocket, timeout, serverName, startTlsInProto, debugTag);
       if (!startTlsSuccess) {
-         nxlog_debug_tag(DEBUG_TAG, 7, _T("H_TLSCertificateInfo(%hs, %d): STARTTLS error"), host, port);
+         nxlog_debug_tag(debugTag, 7, _T("StartTLS error"));
          return SYSINFO_RC_ERROR;
       }
    }
