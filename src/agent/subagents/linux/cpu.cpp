@@ -349,7 +349,9 @@ float Collector::GetCoreUsage(enum CpuUsageSource source, int coreIndex, int nbL
    }
 
    CpuStats &core = m_perCore[coreIndex];
-   if (!core.IsOn())
+
+   // If core wasn't reported, or no delta-based samples yet, we have nothing to average.
+   if (!core.IsOn() || core.m_tables[source].m_size == 0)
    {
       return 0;
    }
