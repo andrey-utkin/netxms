@@ -104,7 +104,12 @@ private:
 CpuStats::CpuStats():
    m_on(false),
    m_havePrevMeasurements(false)
-{}
+{
+   for (int i = 0; i < CPU_USAGE_NB_SOURCES; i++)
+   {
+      new (&m_tables[i]) MeasurementsTable();
+   }
+}
 
 void CpuStats::SetOff()
 {
