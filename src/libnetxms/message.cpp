@@ -910,7 +910,9 @@ TCHAR *NXCPMessage::getFieldAsString(uint32_t fieldId, MemoryPool *pool, TCHAR *
       }
 #endif
    }
-   return (str != nullptr) ? str : buffer;
+   TCHAR *retval = (str != nullptr) ? str : buffer;
+   nxlog_debug_tag(L"(<>..<>)  =(:o)", 4, _T("retval: %p '%s', buffer %p, buffer[0] = '%c'"), retval, retval, buffer, buffer[0]);
+   return retval;
 }
 
 #ifdef UNICODE

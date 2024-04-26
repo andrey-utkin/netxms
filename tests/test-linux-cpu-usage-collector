@@ -15,7 +15,7 @@ for period in '' 5 15; do
          FEATURE_PERCORE='Usage5.Idle5'
       fi
       FEATURES+=("$FEATURE_BASENAME")
-      for i in $(seq 0 $(( $(nproc) - 1 )) ); do
+      for i in $(seq 0 $(( $(nproc --all) - 1 )) ); do
          FEATURES+=("$FEATURE_PERCORE($i)")
       done
    done
@@ -26,7 +26,7 @@ while true; do
    echo -e "$DATE"
    for FEATURE in "${FEATURES[@]}"; do
       printf '%-23s' "$FEATURE"
-      for PORT in 4700 4701; do
+      for PORT in 4700 ; do
          OUT=$(nxget -p "$PORT" 127.0.0.1 'System.CPU.'"$FEATURE" || true)
          echo -n -e "\t$OUT"
       done

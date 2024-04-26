@@ -916,7 +916,7 @@ void CommSession::getParameter(NXCPMessage *request, NXCPMessage *response)
 {
    TCHAR parameter[MAX_RUNTIME_PARAM_NAME];
    request->getFieldAsString(VID_PARAMETER, parameter, MAX_RUNTIME_PARAM_NAME);
-
+   nxlog_debug_tag(L"(<>..<>)  =(:o)", 4, _T("parameter: '%s'"), parameter);
    TCHAR value[MAX_RESULT_LENGTH];
    uint32_t errorCode = GetMetricValue(parameter, value, this);
 

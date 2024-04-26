@@ -45,7 +45,12 @@ public:
 MeasurementsTable::MeasurementsTable():
    m_size(0),
    m_writePos(0)
-{}
+{
+   for (int i = 0; i < CPU_USAGE_SLOTS; i++)
+   {
+      m_data[i] = 0;
+   }
+}
 
 float MeasurementsTable::GetAverage(uint32_t nbLastItems)
 {
@@ -58,10 +63,17 @@ float MeasurementsTable::GetAverage(uint32_t nbLastItems)
       return 0;
    }
 
+   assert(m_size <= m_allocated);
+   assert(m_writePos < m_allocated);
+
+   nxlog_debug_tag(DEBUG_TAG, 4, _T("Getting average over nbElem=%u, buffer has m_size=%u, m_writePos=%u"), nbElem, m_size, m_writePos);
+
    for (uint32_t i = 0; i < nbElem; i++)
    {
       uint32_t offset = (m_writePos - i - 1) % m_allocated;
+
       total += m_data[offset];
+      nxlog_debug_tag(DEBUG_TAG, 4, _T("Getting element by offset=%u"), offset);
    }
    return total / nbElem;
 }
@@ -76,13 +88,24 @@ void MeasurementsTable::Update(float measurement)
 {
    assert(m_size <= m_allocated);
    assert(m_writePos < m_allocated);
+   auto debugPrevSize = m_size;
 
+   nxlog_debug_tag(DEBUG_TAG, 4, _T("Putting element by offset=%u"), m_writePos);
    m_data[m_writePos] = measurement;
    m_writePos = (m_writePos + 1) % m_allocated;
    m_size = std::min(m_size + 1, m_allocated);
 
    assert(m_size <= m_allocated);
    assert(m_writePos < m_allocated);
+
+   if (debugPrevSize == m_allocated)
+   {
+      assert(m_size == m_allocated);
+   }
+   else
+   {
+      assert(m_size == 1 + debugPrevSize);
+   }
 }
 
 
@@ -202,7 +225,7 @@ void Collector::Collect()
                if (m_perCore.size() < cpuIndex + 1)
                {
                   nxlog_debug_tag(DEBUG_TAG, 4, _T("Growing cores vector from %u to %u"), m_perCore.size(), cpuIndex + 1);
-                  m_perCore.resize(cpuIndex + 1);
+                  m_perCore.resize(cpuIndex + 1); CpuStats &thisCore = m_perCore.at(cpuIndex); assert(thisCore.IsOn() == false); assert(thisCore.m_tables[0].m_size == 0);
                   coreReported.resize(cpuIndex + 1);
                }
                CpuStats &thisCore = m_perCore.at(cpuIndex);
@@ -241,7 +264,7 @@ void Collector::Collect()
 
 bool CpuStats::IsOn()
 {
-   return m_on;
+   return m_on; // suspected uninitalized??? wtf
 }
 
 inline uint64_t CpuStats::Delta(uint64_t x, uint64_t y)
@@ -348,6 +371,14 @@ float Collector::GetTotalUsage(enum CpuUsageSource source, int nbLastItems)
  */
 float Collector::GetCoreUsage(enum CpuUsageSource source, int coreIndex, int nbLastItems)
 {
+   if (coreIndex > 100)
+   {
+      abort();
+   }
+   if (m_perCore.size() > 100)
+   {
+      abort();
+   }
    if (coreIndex >= m_perCore.size())
    {
       return 0;
@@ -378,9 +409,9 @@ LONG H_CpuUsage(const TCHAR *pszParam, const TCHAR *pArg, TCHAR *pValue, Abstrac
 			count = 60;
 			break;
 	}
-
+        enum CpuUsageSource source = (enum CpuUsageSource)CPU_USAGE_PARAM_SOURCE(pArg);
         m_cpuUsageMutex.lock();
-	float usage = collector->GetTotalUsage((enum CpuUsageSource)CPU_USAGE_PARAM_SOURCE(pArg), count);
+	float usage = collector->GetTotalUsage(source, count);
         ret_double(pValue, usage);
         m_cpuUsageMutex.unlock();
 	return SYSINFO_RC_SUCCESS;
@@ -389,7 +420,8 @@ LONG H_CpuUsage(const TCHAR *pszParam, const TCHAR *pArg, TCHAR *pValue, Abstrac
 LONG H_CpuUsageEx(const TCHAR *pszParam, const TCHAR *pArg, TCHAR *pValue, AbstractCommSession *session)
 {
    LONG ret;
-   TCHAR buffer[256], *eptr;
+   TCHAR buffer[256] = {0,}, *eptr;
+   nxlog_debug_tag(DEBUG_TAG, 4, _T("pszParam: '%s'"), pszParam);
    if (!AgentGetParameterArg(pszParam, 1, buffer, 256))
       return SYSINFO_RC_UNSUPPORTED;
 
@@ -410,15 +442,18 @@ LONG H_CpuUsageEx(const TCHAR *pszParam, const TCHAR *pArg, TCHAR *pValue, Abstr
          count = 60;
          break;
    }
-
+   enum CpuUsageSource source = (enum CpuUsageSource)CPU_USAGE_PARAM_SOURCE(pArg);
    m_cpuUsageMutex.lock();
+   nxlog_debug_tag(DEBUG_TAG, 4, _T("collector: %p"), collector);
+   nxlog_debug_tag(DEBUG_TAG, 4, _T("collector: %p, m_perCore %p"), collector, &collector->m_perCore);
+   nxlog_debug_tag(DEBUG_TAG, 4, _T("collector: %p, m_perCore %p, size %d"), collector, &collector->m_perCore, collector->m_perCore.size());
    if (cpu >= collector->m_perCore.size())
    {
       ret = SYSINFO_RC_UNSUPPORTED;
    }
    else
    {
-      float usage = collector->GetCoreUsage((enum CpuUsageSource)CPU_USAGE_PARAM_SOURCE(pArg), cpu, count);
+      float usage = collector->GetCoreUsage(source, cpu, count);
       ret_double(pValue, usage);
       ret = SYSINFO_RC_SUCCESS;
    }
