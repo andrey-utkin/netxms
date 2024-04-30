@@ -11,6 +11,7 @@
 
 NETXMS_EXECUTABLE_HEADER(test-libnetxms)
 
+void TestCpu();
 void TestGauge64();
 void TestMemoryPool();
 void TestObjectMemoryPool();
@@ -2867,6 +2868,8 @@ int main(int argc, char *argv[])
    WSAStartup(MAKEWORD(2, 2), &wsaData);
 #endif
 
+   TestCpu();
+   return 0;
    TestMutex();
    TestUniqueLock();
    TestCondition();

@@ -49,7 +49,7 @@ float MeasurementsTable::GetAverage(uint32_t nbLastItems)
    assert(m_size <= m_allocated);
    assert(m_writePos < m_allocated);
 
-   nxlog_debug_tag(DEBUG_TAG, 4, _T("Getting average over nbElem=%u, buffer has m_size=%u, m_writePos=%u"), nbElem, m_size, m_writePos);
+   //nxlog_debug_tag(DEBUG_TAG, 4, _T("Getting average over nbElem=%u, buffer has m_size=%u, m_writePos=%u"), nbElem, m_size, m_writePos);
 
    for (uint32_t i = 0; i < nbElem; i++)
    {
@@ -57,7 +57,7 @@ float MeasurementsTable::GetAverage(uint32_t nbLastItems)
       assert(!isnan(m_data[offset]));
 
       total += m_data[offset];
-      nxlog_debug_tag(DEBUG_TAG, 4, _T("Getting element by offset=%u"), offset);
+      //nxlog_debug_tag(DEBUG_TAG, 4, _T("Getting element by offset=%u"), offset);
    }
    return total / nbElem;
 }
@@ -74,7 +74,7 @@ void MeasurementsTable::Update(float measurement)
    assert(m_writePos < m_allocated);
    auto debugPrevSize = m_size;
 
-   nxlog_debug_tag(DEBUG_TAG, 4, _T("Putting element by offset=%u"), m_writePos);
+   //nxlog_debug_tag(DEBUG_TAG, 4, _T("Putting element by offset=%u"), m_writePos);
    m_data[m_writePos] = measurement;
    m_writePos = (m_writePos + 1) % m_allocated;
    m_size = std::min(m_size + 1, m_allocated);
@@ -167,7 +167,7 @@ void Collector::Collect()
    FILE *hStat = fopen("/proc/stat", "r");
    if (hStat == nullptr)
    {
-      nxlog_debug_tag(DEBUG_TAG, 4, _T("Cannot open /proc/stat"));
+      //nxlog_debug_tag(DEBUG_TAG, 4, _T("Cannot open /proc/stat"));
       return;
    }
 
@@ -205,7 +205,7 @@ void Collector::Collect()
             if (ret == 10) {
                if (m_perCore.size() < cpuIndex + 1)
                {
-                  nxlog_debug_tag(DEBUG_TAG, 4, _T("Growing cores vector from %u to %u"), m_perCore.size(), cpuIndex + 1);
+                  //nxlog_debug_tag(DEBUG_TAG, 4, _T("Growing cores vector from %u to %u"), m_perCore.size(), cpuIndex + 1);
                   m_perCore.resize(cpuIndex + 1);
                   CpuStats &thisCore = m_perCore.at(cpuIndex);
                   assert(thisCore.IsOn() == false);
@@ -240,7 +240,7 @@ void Collector::Collect()
    {
       if (!coreReported[cpuIndex] && m_perCore[cpuIndex].IsOn())
       {
-         nxlog_debug_tag(DEBUG_TAG, 4, _T("Core %u was not reported this time"), m_perCore.size(), cpuIndex + 1);
+         //nxlog_debug_tag(DEBUG_TAG, 4, _T("Core %u was not reported this time"), m_perCore.size(), cpuIndex + 1);
          m_perCore[cpuIndex].SetOff();
       }
    }
