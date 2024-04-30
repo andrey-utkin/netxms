@@ -60,85 +60,6 @@ void ShutdownCpuUsageCollector()
    collector = nullptr;
    m_cpuUsageMutex.unlock();
 }
-#if 0
-LONG H_CpuUsage(const TCHAR *pszParam, const TCHAR *pArg, TCHAR *pValue, AbstractCommSession *session)
-{
-        int count;
-        switch(CPU_USAGE_PARAM_INTERVAL(pArg))
-        {
-                case INTERVAL_5MIN:
-                        count = 5 * 60;
-                        break;
-                case INTERVAL_15MIN:
-                        count = 15 * 60;
-                        break;
-                default:
-                        count = 60;
-                        break;
-        }
-        enum CpuUsageSource source = (enum CpuUsageSource)CPU_USAGE_PARAM_SOURCE(pArg);
-        m_cpuUsageMutex.lock();
-        float usage = collector->GetTotalUsage(source, count);
-        ret_double(pValue, usage);
-        m_cpuUsageMutex.unlock();
-        return SYSINFO_RC_SUCCESS;
-}
-
-LONG H_CpuUsageEx(const TCHAR *pszParam, const TCHAR *pArg, TCHAR *pValue, AbstractCommSession *session)
-{
-   LONG ret;
-   TCHAR buffer[256] = {0,}, *eptr;
-   nxlog_debug_tag(DEBUG_TAG, 4, _T("pszParam: '%s'"), pszParam);
-   if (!AgentGetParameterArg(pszParam, 1, buffer, 256))
-      return SYSINFO_RC_UNSUPPORTED;
-
-   int cpu = _tcstol(buffer, &eptr, 0);
-   if ((*eptr != 0) || (cpu < 0))
-      return SYSINFO_RC_UNSUPPORTED;
-
-   int count;
-   switch(CPU_USAGE_PARAM_INTERVAL(pArg))
-   {
-      case INTERVAL_5MIN:
-         count = 5 * 60;
-         break;
-      case INTERVAL_15MIN:
-         count = 15 * 60;
-         break;
-      default:
-         count = 60;
-         break;
-   }
-   enum CpuUsageSource source = (enum CpuUsageSource)CPU_USAGE_PARAM_SOURCE(pArg);
-   m_cpuUsageMutex.lock();
-   nxlog_debug_tag(DEBUG_TAG, 4, _T("collector: %p"), collector);
-   nxlog_debug_tag(DEBUG_TAG, 4, _T("collector: %p, m_perCore %p"), collector, &collector->m_perCore);
-   nxlog_debug_tag(DEBUG_TAG, 4, _T("collector: %p, m_perCore %p, size %d"), collector, &collector->m_perCore, collector->m_perCore.size());
-   if (cpu >= collector->m_perCore.size())
-   {
-      ret = SYSINFO_RC_UNSUPPORTED;
-   }
-   else
-   {
-      float usage = collector->GetCoreUsage(source, cpu, count);
-      ret_double(pValue, usage);
-      ret = SYSINFO_RC_SUCCESS;
-   }
-   m_cpuUsageMutex.unlock();
-   return ret;
-}
-
-/**
- * Handler for System.CPU.Count parameter
- */
-LONG H_CpuCount(const TCHAR *pszParam, const TCHAR *pArg, TCHAR *pValue, AbstractCommSession *session)
-{
-   m_cpuUsageMutex.lock();
-   ret_uint(pValue, collector->m_perCore.size());
-   m_cpuUsageMutex.unlock();
-   return SYSINFO_RC_SUCCESS;
-}
-#endif
 
 
 static void ServeAllMetrics()
@@ -156,7 +77,7 @@ static void ServeAllMetrics()
             case INTERVAL_15MIN: count = 15 * 60; break;
             default: count = 60; break;
          }
-         
+
          for (int coreIndex = 0; coreIndex < nbCoresActual; coreIndex++)
          {
             float usage = collector->GetCoreUsage(source, coreIndex, count);
