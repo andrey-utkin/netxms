@@ -1,7 +1,3 @@
-#ifdef _WIN32
-#define _CRT_NONSTDC_NO_WARNINGS
-#endif
-
 #include <nms_common.h>
 #include <nms_util.h>
 #include <nxcpapi.h>
@@ -9,7 +5,7 @@
 #include <testtools.h>
 #include <netxms-version.h>
 
-NETXMS_EXECUTABLE_HEADER(test-libnetxms)
+NETXMS_EXECUTABLE_HEADER(test-unit-linux-cpu-usage-collector)
 
 void TestCpu();
 
@@ -31,30 +27,13 @@ static void DebugWriter(const TCHAR *tag, const TCHAR *format, va_list args)
  */
 int main(int argc, char *argv[])
 {
-   bool debug = false;
-
    InitNetXMSProcess(true);
    if (argc > 1)
    {
-      if (!strcmp(argv[1], "@proc"))
-      {
-         TestProcessExecutorWorker();
-         return 0;
-      }
-      else if (!strcmp(argv[1], "@subproc"))
-      {
-         if ((argc > 2) && !strcmp(argv[2], "-debug"))
-         {
-            nxlog_open(_T("subprocess.log"), 0);
-            nxlog_set_debug_level(9);
-         }
-         SubProcessMain(argc, argv, TestSubProcessRequestHandler);
-         return 0;
-      }
-      else if (!strcmp(argv[1], "-debug"))
+      if (!strcmp(argv[1], "-debug"))
       {
          nxlog_set_debug_writer(DebugWriter);
-         debug = true;
+         nxlog_set_debug_level(9);
       }
    }
 
