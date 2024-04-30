@@ -14,7 +14,7 @@ const int collectionPeriodMs = 10;
  */
 static void CpuUsageCollectorThread()
 {
-   //nxlog_debug_tag(DEBUG_TAG, 2, _T("CPU usage collector thread started"));
+   nxlog_debug_tag(DEBUG_TAG, 2, _T("CPU usage collector thread started"));
 
    m_cpuUsageMutex.lock();
    while(collector->m_stopThread == false)
@@ -25,7 +25,7 @@ static void CpuUsageCollectorThread()
       m_cpuUsageMutex.lock();
    }
    m_cpuUsageMutex.unlock();
-   //nxlog_debug_tag(DEBUG_TAG, 2, _T("CPU usage collector thread stopped"));
+   nxlog_debug_tag(DEBUG_TAG, 2, _T("CPU usage collector thread stopped"));
 }
 
 /**
@@ -36,7 +36,7 @@ void StartCpuUsageCollector()
    m_cpuUsageMutex.lock();
    if (collector != nullptr)
    {
-      //nxlog_write(NXLOG_ERROR, _T("CPU Usage Collector extraneous initialization detected!"));
+      nxlog_write(NXLOG_ERROR, _T("CPU Usage Collector extraneous initialization detected!"));
    }
    assert(collector == nullptr);
    collector = new Collector();
@@ -116,12 +116,9 @@ void TestCpu()
    while (GetCurrentTimeMs() - start < CPU_USAGE_SLOTS * collectionPeriodMs * 2)
    {
       ServeAllMetrics();
-      //ThreadSleepMs(collectionPeriodMs/2);
    }
    ShutdownCpuUsageCollector();
    delete(collector);
    EndTest();
-   // torture test
-   // sense timeout, perhaps create consumer thread and here do ThreadSleepMs(1000);
 
 }
