@@ -18,6 +18,9 @@
 **
 **/
 
+#include <math.h>
+#include <cmath>
+
 #include "linux_subagent.h"
 
 #define CPU_USAGE_SLOTS			900 // 60 sec * 15 min => 900 sec
@@ -48,7 +51,7 @@ MeasurementsTable::MeasurementsTable():
 {
    for (int i = 0; i < CPU_USAGE_SLOTS; i++)
    {
-      m_data[i] = 0;
+      m_data[i] = NAN;
    }
 }
 
@@ -71,6 +74,7 @@ float MeasurementsTable::GetAverage(uint32_t nbLastItems)
    for (uint32_t i = 0; i < nbElem; i++)
    {
       uint32_t offset = (m_writePos - i - 1) % m_allocated;
+      assert(!isnan(m_data[offset]));
 
       total += m_data[offset];
       nxlog_debug_tag(DEBUG_TAG, 4, _T("Getting element by offset=%u"), offset);
@@ -225,7 +229,10 @@ void Collector::Collect()
                if (m_perCore.size() < cpuIndex + 1)
                {
                   nxlog_debug_tag(DEBUG_TAG, 4, _T("Growing cores vector from %u to %u"), m_perCore.size(), cpuIndex + 1);
-                  m_perCore.resize(cpuIndex + 1); CpuStats &thisCore = m_perCore.at(cpuIndex); assert(thisCore.IsOn() == false); assert(thisCore.m_tables[0].m_size == 0);
+                  m_perCore.resize(cpuIndex + 1);
+                  CpuStats &thisCore = m_perCore.at(cpuIndex);
+                  assert(thisCore.IsOn() == false);
+                  assert(thisCore.m_tables[0].m_size == 0);
                   coreReported.resize(cpuIndex + 1);
                }
                CpuStats &thisCore = m_perCore.at(cpuIndex);
