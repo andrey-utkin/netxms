@@ -84,6 +84,7 @@ private:
    time_t m_lastRequestTime;
    Mutex m_mutex;
    DocumentType m_type;
+   uint32_t m_responseCode;
    union
    {
       pugi::xml_document *xml;
@@ -125,6 +126,7 @@ public:
    uint32_t getParams(StringList *params, NXCPMessage *response);
    uint32_t getList(const TCHAR *path, NXCPMessage *response);
    const TCHAR *getText();
+   uint32_t getResponseCode();
    bool isDataExpired(uint32_t retentionTime) { return (time(nullptr) - m_lastRequestTime) >= retentionTime; }
    uint32_t query(const TCHAR *url, uint16_t requestMethod, const char *requestData, const char *userName, const char *password,
          WebServiceAuthType authType, struct curl_slist *headers, bool verifyPeer, bool verifyHost, bool followLocation, bool forcePlainTextParser, uint32_t requestTimeout);
@@ -146,6 +148,7 @@ ServiceEntry::ServiceEntry()
 {
    m_lastRequestTime = 0;
    m_type = DocumentType::NONE;
+   m_responseCode = 0;
 }
 
 /**
@@ -624,6 +627,14 @@ const TCHAR *ServiceEntry::getText()
 }
 
 /**
+ * Get HTTP response code
+ */
+uint32_t ServiceEntry::getResponseCode()
+{
+   return m_responseCode;
+}
+
+/**
  * Callback for processing data received from cURL
  */
 static size_t OnCurlDataReceived(char *ptr, size_t size, size_t nmemb, void *context)
@@ -734,7 +745,8 @@ retry:
             deleteContent();
             long responseCode;
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
-            if (data.size() > 0 && (responseCode >= 200 && responseCode <= 299))
+            m_responseCode = static_cast<uint32_t>(responseCode);
+            if (data.size() > 0 && (m_responseCode >= 200 && m_responseCode <= 299))
             {
                data.write('\0');
 
@@ -802,7 +814,7 @@ retry:
                   MemFree(responseText);
                }
             }
-            else if ((responseCode >= 300) && (responseCode <= 399))
+            else if ((m_responseCode >= 300) && (m_responseCode <= 399))
             {
                char *redirectURL = nullptr;
                curl_easy_getinfo(curl, CURLINFO_REDIRECT_URL, &redirectURL);
@@ -827,14 +839,14 @@ retry:
                }
                else
                {
-                  nxlog_debug_tag(DEBUG_TAG, 1, _T("ServiceEntry::query(%s): HTTP response %03d but redirect URL not set"), url, static_cast<uint32_t>(responseCode));
+                  nxlog_debug_tag(DEBUG_TAG, 1, _T("ServiceEntry::query(%s): HTTP response %03d but redirect URL not set"), url, m_responseCode);
                }
                rcc = ERR_MALFORMED_RESPONSE;
             }
             else
             {
-               if (responseCode < 200 || responseCode > 299)
-                  nxlog_debug_tag(DEBUG_TAG, 1, _T("ServiceEntry::query(%s): HTTP response %03d"), url, static_cast<uint32_t>(responseCode));
+               if (m_responseCode < 200 || m_responseCode > 299)
+                  nxlog_debug_tag(DEBUG_TAG, 1, _T("ServiceEntry::query(%s): HTTP response %03d"), url, m_responseCode);
                else if (data.size() == 0)
                   nxlog_debug_tag(DEBUG_TAG, 1, _T("ServiceEntry::query(%s): empty response"), url);
                m_type = DocumentType::NONE;
@@ -1036,6 +1048,7 @@ void WebServiceCustomRequest(NXCPMessage* request, shared_ptr<AbstractCommSessio
    if (result == ERR_SUCCESS)
    {
       response.setField(VID_WEBSVC_RESPONSE, cachedEntry->getText());
+      response.setField(VID_WEBSVC_RESPONSE_CODE, cachedEntry->getResponseCode());
    }
    cachedEntry->unlock();
 
