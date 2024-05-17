@@ -1045,11 +1045,8 @@ void WebServiceCustomRequest(NXCPMessage* request, shared_ptr<AbstractCommSessio
    }
 
    NXCPMessage response(CMD_REQUEST_COMPLETED, request->getId());
-   if (result == ERR_SUCCESS)
-   {
-      response.setField(VID_WEBSVC_RESPONSE, cachedEntry->getText());
-      response.setField(VID_WEBSVC_RESPONSE_CODE, cachedEntry->getResponseCode());
-   }
+   response.setField(VID_WEBSVC_RESPONSE, cachedEntry->getText());
+   response.setField(VID_WEBSVC_RESPONSE_CODE, cachedEntry->getResponseCode());
    cachedEntry->unlock();
 
    response.setField(VID_RCC, result);
