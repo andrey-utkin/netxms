@@ -19,13 +19,20 @@
 package org.netxms.tests;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import java.io.StringWriter;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 import org.netxms.client.InputField;
 import org.netxms.client.NXCSession;
 import org.netxms.client.constants.InputFieldType;
 import org.netxms.client.objecttools.ObjectTool;
 import org.netxms.client.objecttools.ObjectToolDetails;
+import org.netxms.client.objects.Node;
+import org.netxms.utilities.TestHelper;
+
 
 /**
  * 
@@ -100,6 +107,42 @@ public class ObjectToolsTest extends AbstractSessionTest
       td = session.getObjectToolDetails(id);
       for(InputField f : td.getInputFields())
          System.out.println(f);
+
+      session.deleteObjectTool(id);
+
+      session.disconnect();
+   }
+
+   @Test
+   public void testInputGlobalVar() throws Exception
+   {
+      final NXCSession session = connect();
+
+      long id = session.generateObjectToolId();
+      assertFalse(id == 0);
+      System.out.println("Object tool ID generated: " + id);
+
+      ObjectToolDetails td = new ObjectToolDetails(id, ObjectTool.TYPE_SERVER_SCRIPT, "testInputGlobalVar");
+      td.setData("println($INPUT);");
+      td.addInputField(new InputField("size", InputFieldType.NUMBER, "Size (bytes)", 0));
+      td.addInputField(new InputField("unused", InputFieldType.PASSWORD, "Unused field", 0));
+      session.modifyObjectTool(td);
+
+      td = session.getObjectToolDetails(id);
+      for(InputField f : td.getInputFields())
+         System.out.println(f);
+
+
+      Node testNode = (Node)TestHelper.findManagementServer(session);
+      assertNotNull(testNode);
+
+      Map<String, String> inputFields = new HashMap<String, String>();
+      inputFields.put("size", "1024");
+      inputFields.put("unused", "");
+
+      StringWriter stringWriter = new StringWriter();
+      session.executeServerCommand(/*objectId*/id, /*alarmId*/0, /*command*/"testInputGlobalVar", inputFields, /*maskedFields*/null, /*receiveOutput*/true, /*listener*/null, stringWriter);
+      System.out.println("Object Tool output: " + stringWriter.toString());
 
       session.deleteObjectTool(id);
 
