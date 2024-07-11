@@ -184,7 +184,8 @@ public class ObjectToolsTest extends AbstractSessionTest
 
       StringWriter stringWriter = new StringWriter();
       //session.executeServerCommand(/*objectId*/testNode.getObjectId(), /*alarmId*/0, /*command*/td.getData(), inputFields, /*maskedFields*/null, /*receiveOutput*/true, /*listener*/null, stringWriter);
-      session.executeLibraryScript(/*objectId*/testNode.getObjectId(), /*alarmId*/0, /*command*/td.getData(), inputFields, /*maskedFields*/null, /*receiveOutput*/true, /*listener *_/ null, stringWriter*/);
+      TextOutputChecker listener = new TextOutputChecker();
+      session.executeLibraryScript(/*objectId*/testNode.getObjectId(), /*alarmId*/0, /*command*/td.getData(), inputFields, /*maskedFields*/null, /*receiveOutput*/true, /*listener*/listener);
       System.out.println("Object Tool output: " + stringWriter.toString());
 
       session.deleteObjectTool(id);
