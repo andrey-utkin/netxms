@@ -185,7 +185,13 @@ public class ObjectToolsTest extends AbstractSessionTest
       StringWriter stringWriter = new StringWriter();
       //session.executeServerCommand(/*objectId*/testNode.getObjectId(), /*alarmId*/0, /*command*/td.getData(), inputFields, /*maskedFields*/null, /*receiveOutput*/true, /*listener*/null, stringWriter);
       TextOutputChecker listener = new TextOutputChecker();
-      session.executeLibraryScript(/*objectId*/testNode.getObjectId(), /*alarmId*/0, /*command*/td.getData(), inputFields, /*maskedFields*/null, /*receiveOutput*/true, /*listener*/listener);
+      /*
+      src/client/java/netxms-client/src/main/java/org/netxms/client/NXCSession.java
+      8507:   public void executeLibraryScript(long nodeId, String script, Map<String, String> inputFields, List<String> maskedFields, final TextOutputListener listener)
+      8510:      executeLibraryScript(nodeId, 0, script, inputFields, maskedFields, listener);
+      8526:   public void executeLibraryScript(long objectId, long alarmId, String script, Map<String, String> inputFields, List<String> maskedFields, final TextOutputListener listener) throws IOException, NXCException
+      */
+      session.executeLibraryScript(/*objectId*/testNode.getObjectId(), /*script*/td.getData(), inputFields, /*maskedFields*/null, /*listener*/listener);
       System.out.println("Object Tool output: " + stringWriter.toString());
 
       session.deleteObjectTool(id);
