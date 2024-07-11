@@ -141,7 +141,7 @@ public class ObjectToolsTest extends AbstractSessionTest
       inputFields.put("unused", "");
 
       StringWriter stringWriter = new StringWriter();
-      session.executeServerCommand(/*objectId*/id, /*alarmId*/0, /*command*/"testInputGlobalVar", inputFields, /*maskedFields*/null, /*receiveOutput*/true, /*listener*/null, stringWriter);
+      session.executeServerCommand(/*objectId*/testNode.getObjectId(), /*alarmId*/0, /*command*/"testInputGlobalVar", inputFields, /*maskedFields*/null, /*receiveOutput*/true, /*listener*/null, stringWriter);
       System.out.println("Object Tool output: " + stringWriter.toString());
 
       session.deleteObjectTool(id);
