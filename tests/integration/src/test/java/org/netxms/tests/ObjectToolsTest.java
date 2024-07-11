@@ -34,6 +34,48 @@ import org.netxms.client.objects.Node;
 import org.netxms.utilities.TestHelper;
 
 
+import org.netxms.utilities.TestHelper;
+import org.netxms.client.TextOutputListener;
+
+class TextOutputChecker implements TextOutputListener
+{
+   /**
+    * @see org.netxms.client.TextOutputListener#messageReceived(java.lang.String)
+    */
+   @Override
+   public void messageReceived(String text)
+   {
+      System.out.println("messageReceived: " + text);
+   }
+
+   /**
+    * @see org.netxms.client.TextOutputListener#setStreamId(long)
+    */
+   @Override
+   public void setStreamId(long streamId)
+   {
+   }
+
+   /**
+    * @see org.netxms.client.TextOutputListener#onSuccess()
+    */
+   @Override
+   public void onSuccess()
+   {
+      System.out.println("Success");
+   }
+
+   /**
+    * @see org.netxms.client.TextOutputListener#onFailure(java.lang.Exception)
+    */
+   @Override
+   public void onFailure(Exception exception)
+   {
+      assertFalse(true);
+   }
+}
+
+
 /**
  * 
  * Test object tools functionality
@@ -141,7 +183,8 @@ public class ObjectToolsTest extends AbstractSessionTest
       inputFields.put("unused", "");
 
       StringWriter stringWriter = new StringWriter();
-      session.executeServerCommand(/*objectId*/testNode.getObjectId(), /*alarmId*/0, /*command*/"testInputGlobalVar", inputFields, /*maskedFields*/null, /*receiveOutput*/true, /*listener*/null, stringWriter);
+      //session.executeServerCommand(/*objectId*/testNode.getObjectId(), /*alarmId*/0, /*command*/td.getData(), inputFields, /*maskedFields*/null, /*receiveOutput*/true, /*listener*/null, stringWriter);
+      session.executeLibraryScript(/*objectId*/testNode.getObjectId(), /*alarmId*/0, /*command*/td.getData(), inputFields, /*maskedFields*/null, /*receiveOutput*/true, /*listener *_/ null, stringWriter*/);
       System.out.println("Object Tool output: " + stringWriter.toString());
 
       session.deleteObjectTool(id);
