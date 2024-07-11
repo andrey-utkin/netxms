@@ -191,7 +191,7 @@ public class ObjectToolsTest extends AbstractSessionTest
       8510:      executeLibraryScript(nodeId, 0, script, inputFields, maskedFields, listener);
       8526:   public void executeLibraryScript(long objectId, long alarmId, String script, Map<String, String> inputFields, List<String> maskedFields, final TextOutputListener listener) throws IOException, NXCException
       */
-      session.executeLibraryScript(/*objectId*/testNode.getObjectId(), /*script*/"testInputGlobalVar", inputFields, /*maskedFields*/null, /*listener*/listener);
+      session.executeLibraryScript(/*objectId*/testNode.getObjectId(), /*script*/"nx2533script", inputFields, /*maskedFields*/null, /*listener*/listener);
       System.out.println("Object Tool output: " + stringWriter.toString());
 
       session.deleteObjectTool(id);
