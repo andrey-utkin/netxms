@@ -122,8 +122,14 @@ ${VM_NAME}.netxms.installed: ${VM_NAME}.access.configured
 	incus exec ${VM_NAME} -- bash -c "cd netxms && ~/build-netxms"
 	incus exec ${VM_NAME} -- cp /usr/local/etc/{jenkins,}/nxagentd.conf
 	incus exec ${VM_NAME} -- sed -i -e 's/ListenPort = /ListenPort = 4700/' /usr/local/etc/nxagentd.conf
+	incus exec ${VM_NAME} -- sed -i -e 's:MasterServers = 127.0.0.1:MasterServers = 0.0.0.0/0:' /usr/local/etc/nxagentd.conf
 	incus exec ${VM_NAME} -- ldconfig
 	incus exec ${VM_NAME} -- nxagentd -d
+	incus file push netxmsd.conf ${VM_NAME}/usr/local/etc/
+	incus exec ${VM_NAME} -- nxdbmgr init
+	echo "UPDATE users SET flags = 0 WHERE name = 'admin';" | incus exec ${VM_NAME} -- sqlite3 /usr/local/var/lib/netxms/netxms.db
+	incus exec ${VM_NAME} -- netxmsd -d
+
 	sleep 3
 	incus exec ${VM_NAME} -- nxget -p4700 127.0.0.1 Net.WireguardInterfaces
 	incus exec ${VM_NAME} -- nxget -p4700 127.0.0.1 Net.WireguardPeers
