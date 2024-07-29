@@ -118,7 +118,7 @@ ${VM_NAME}.p.installed: ${VM_NAME}.access.configured
 ${VM_NAME}.netxms.installed: ${VM_NAME}.access.configured
 	rsync -av -e "ssh -F ${VM_NAME}.ssh_config" build-netxms netxms-build-tag.h ${VM_NAME}:
 	incus exec ${VM_NAME} -- apt install -V -y git autoconf automake libtool bison flex libssl-dev libpcre3-dev rr gdb g++ gcc build-essential sqlite3
-	incus exec ${VM_NAME} -- git clone --branch nx-2556 https://github.com/andrey-utkin/netxms.git || true
+	incus exec ${VM_NAME} -- git clone --branch nx-2556-stable https://github.com/andrey-utkin/netxms.git || true
 	incus exec ${VM_NAME} -- bash -c "cd netxms && ~/build-netxms"
 	incus exec ${VM_NAME} -- cp /usr/local/etc/{jenkins,}/nxagentd.conf
 	incus exec ${VM_NAME} -- sed -i -e 's/ListenPort = /ListenPort = 4700/' /usr/local/etc/nxagentd.conf
