@@ -27,6 +27,7 @@ import org.netxms.client.NXCSession;
 import org.netxms.client.maps.NetworkMapLink;
 import org.netxms.client.maps.NetworkMapPage;
 import org.netxms.client.maps.elements.NetworkMapElement;
+import org.netxms.client.maps.elements.NetworkMapObject;
 import org.netxms.client.objects.AbstractNode;
 import org.netxms.client.objects.AbstractObject;
 import org.netxms.client.objects.Node;
@@ -84,6 +85,22 @@ public class TopologyTest extends AbstractSessionTest
       for(NetworkMapLink l : page.getLinks())
          System.out.println(l.toString());
       
+      session.disconnect();
+   }
+
+   @Test
+   public void testIPTopology() throws Exception
+   {
+      final NXCSession session = connectAndLogin();
+      Node node = TestHelper.getTopologyNode(session);
+      assertNotNull(node);
+
+      NetworkMapPage page = session.queryIPTopology(node.getObjectId(), -1);
+      for(NetworkMapElement e : page.getElements())
+         System.out.println(e.toString());
+      for(NetworkMapLink l : page.getLinks())
+         System.out.println(l.toString());
+
       session.disconnect();
    }
 
