@@ -135,6 +135,7 @@
     <string name="status_unknown">Unknown</string>
     <string name="status_disabled">Disabled</string>
     <string name="status_testing">Testing</string>
+    <string name="status_decommissioned">Decommissioned</string>
 
     <string name="view_alarms">View alarms</string>
     <string name="alarm_actions">Actions</string>

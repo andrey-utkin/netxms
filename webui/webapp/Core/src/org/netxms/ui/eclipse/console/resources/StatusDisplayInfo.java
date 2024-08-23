@@ -34,7 +34,7 @@ import org.netxms.ui.eclipse.shared.ConsoleSharedData;
 public final class StatusDisplayInfo
 {
    private static final String[] STATUS_COLOR_NAMES =
-         { "Status.Normal", "Status.Warning", "Status.Minor", "Status.Major", "Status.Critical", "Status.Unknown", "Status.Unmanaged", "Status.Disabled", "Status.Testing" };
+         { "Status.Normal", "Status.Warning", "Status.Minor", "Status.Major", "Status.Critical", "Status.Unknown", "Status.Unmanaged", "Status.Disabled", "Status.Testing", "Status.Decommissioned" };
 
    private String[] statusText = new String[9];
    private ImageDescriptor[] statusImageDesc = new ImageDescriptor[9];
@@ -72,6 +72,7 @@ public final class StatusDisplayInfo
 		statusText[ObjectStatus.UNMANAGED.getValue()] = Messages.get(display).StatusDisplayInfo_Unmanaged;
 		statusText[ObjectStatus.DISABLED.getValue()] = Messages.get(display).StatusDisplayInfo_Disabled;
 		statusText[ObjectStatus.TESTING.getValue()] = Messages.get(display).StatusDisplayInfo_Testing;
+		statusText[ObjectStatus.DECOMMISSIONED.getValue()] = Messages.get(display).StatusDisplayInfo_Decommissioned;
 
 		statusImageDesc[ObjectStatus.NORMAL.getValue()] = Activator.getImageDescriptor("icons/status/normal.png"); //$NON-NLS-1$
 		statusImageDesc[ObjectStatus.WARNING.getValue()] = Activator.getImageDescriptor("icons/status/warning.png"); //$NON-NLS-1$
@@ -82,6 +83,7 @@ public final class StatusDisplayInfo
 		statusImageDesc[ObjectStatus.UNMANAGED.getValue()] = Activator.getImageDescriptor("icons/status/unmanaged.png"); //$NON-NLS-1$
 		statusImageDesc[ObjectStatus.DISABLED.getValue()] = Activator.getImageDescriptor("icons/status/disabled.png"); //$NON-NLS-1$
 		statusImageDesc[ObjectStatus.TESTING.getValue()] = Activator.getImageDescriptor("icons/status/testing.png"); //$NON-NLS-1$
+		statusImageDesc[ObjectStatus.DECOMMISSIONED.getValue()] = Activator.getImageDescriptor("icons/status/decommissioned.png"); //$NON-NLS-1$
 		
 		for(int i = 0; i < statusImageDesc.length; i++)
 			statusImage[i] = statusImageDesc[i].createImage(display);

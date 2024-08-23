@@ -158,6 +158,7 @@
 #define STATUS_UNMANAGED      6
 #define STATUS_DISABLED       7
 #define STATUS_TESTING        8
+#define STATUS_DECOMMISSIONED 9
 
 /**
  * Event and alarm severity

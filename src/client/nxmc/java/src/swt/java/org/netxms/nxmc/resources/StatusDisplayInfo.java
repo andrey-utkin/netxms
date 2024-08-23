@@ -57,6 +57,7 @@ public final class StatusDisplayInfo
       statusText[ObjectStatus.UNMANAGED.getValue()] = i18n.tr("Unmanaged");
       statusText[ObjectStatus.DISABLED.getValue()] = i18n.tr("Disabled");
       statusText[ObjectStatus.TESTING.getValue()] = i18n.tr("Testing");
+      statusText[ObjectStatus.DECOMMISSIONED.getValue()] = i18n.tr("Decommissioned");
 
       statusImageDescriptors[ObjectStatus.NORMAL.getValue()] = ResourceManager.getImageDescriptor("icons/status/normal.png");
       statusImageDescriptors[ObjectStatus.WARNING.getValue()] = ResourceManager.getImageDescriptor("icons/status/warning.png");
@@ -67,6 +68,7 @@ public final class StatusDisplayInfo
       statusImageDescriptors[ObjectStatus.UNMANAGED.getValue()] = ResourceManager.getImageDescriptor("icons/status/unmanaged.png");
       statusImageDescriptors[ObjectStatus.DISABLED.getValue()] = ResourceManager.getImageDescriptor("icons/status/disabled.png");
       statusImageDescriptors[ObjectStatus.TESTING.getValue()] = ResourceManager.getImageDescriptor("icons/status/testing.png");
+      statusImageDescriptors[ObjectStatus.DECOMMISSIONED.getValue()] = ResourceManager.getImageDescriptor("icons/status/decommissioned.png");
 
 		for(int i = 0; i < statusImageDescriptors.length; i++)
 			statusImages[i] = statusImageDescriptors[i].createImage();
@@ -79,6 +81,7 @@ public final class StatusDisplayInfo
 		overlayImageDescriptors[ObjectStatus.UNMANAGED.getValue()] = ResourceManager.getImageDescriptor("icons/status/overlay/unmanaged.gif");
 		overlayImageDescriptors[ObjectStatus.DISABLED.getValue()] = ResourceManager.getImageDescriptor("icons/status/overlay/disabled.gif");
 		overlayImageDescriptors[ObjectStatus.TESTING.getValue()] = ResourceManager.getImageDescriptor("icons/status/overlay/testing.png");
+		overlayImageDescriptors[ObjectStatus.DECOMMISSIONED.getValue()] = ResourceManager.getImageDescriptor("icons/status/overlay/decommissioned.gif");
 		
 		colorCache = new ColorCache();
 		updateStatusColors();
@@ -100,6 +103,7 @@ public final class StatusDisplayInfo
       statusColor[6] = colorCache.create(ps.getAsColor("Status.Colors.Unmanaged", ThemeEngine.getForegroundColorDefinition("Status.Unmanaged")));
       statusColor[7] = colorCache.create(ps.getAsColor("Status.Colors.Disabled", ThemeEngine.getForegroundColorDefinition("Status.Disabled")));
       statusColor[8] = colorCache.create(ps.getAsColor("Status.Colors.Testing", ThemeEngine.getForegroundColorDefinition("Status.Testing")));
+      statusColor[9] = colorCache.create(ps.getAsColor("Status.Colors.Decommissioned", ThemeEngine.getForegroundColorDefinition("Status.Decommissioned")));
 
       statusBackgroundColor[0] = colorCache.create(ps.getAsColor("Status.BackgroundColors.Normal", ThemeEngine.getBackgroundColorDefinition("Status.Normal")));
       statusBackgroundColor[1] = colorCache.create(ps.getAsColor("Status.BackgroundColors.Warning", ThemeEngine.getBackgroundColorDefinition("Status.Warning")));
@@ -110,6 +114,7 @@ public final class StatusDisplayInfo
       statusBackgroundColor[6] = colorCache.create(ps.getAsColor("Status.BackgroundColors.Unmanaged", ThemeEngine.getBackgroundColorDefinition("Status.Unmanaged")));
       statusBackgroundColor[7] = colorCache.create(ps.getAsColor("Status.BackgroundColors.Disabled", ThemeEngine.getBackgroundColorDefinition("Status.Disabled")));
       statusBackgroundColor[8] = colorCache.create(ps.getAsColor("Status.BackgroundColors.Testing", ThemeEngine.getBackgroundColorDefinition("Status.Testing")));
+      statusBackgroundColor[9] = colorCache.create(ps.getAsColor("Status.BackgroundColors.Decommissioned", ThemeEngine.getBackgroundColorDefinition("Status.Decommissioned")));
    }
 
 	/**

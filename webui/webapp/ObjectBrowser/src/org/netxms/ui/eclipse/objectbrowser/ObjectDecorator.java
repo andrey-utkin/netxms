@@ -53,6 +53,7 @@ public class ObjectDecorator extends BaseLabelProvider implements ILightweightLa
 		statusImages[6] = Activator.getImageDescriptor("icons/status/unmanaged.gif"); //$NON-NLS-1$
 		statusImages[7] = Activator.getImageDescriptor("icons/status/disabled.gif"); //$NON-NLS-1$
 		statusImages[8] = Activator.getImageDescriptor("icons/status/testing.png"); //$NON-NLS-1$
+		statusImages[9] = Activator.getImageDescriptor("icons/status/decommissioned.gif"); //$NON-NLS-1$
 		maintModeImage = Activator.getImageDescriptor("icons/maint_mode.png"); //$NON-NLS-1$
 	}
 

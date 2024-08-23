@@ -62,6 +62,7 @@ public final class StatusDisplayInfo
       instance.statusText[ObjectStatus.UNMANAGED.getValue()] = instance.i18n.tr("Unmanaged");
       instance.statusText[ObjectStatus.DISABLED.getValue()] = instance.i18n.tr("Disabled");
       instance.statusText[ObjectStatus.TESTING.getValue()] = instance.i18n.tr("Testing");
+      instance.statusText[ObjectStatus.DECOMMISSIONED.getValue()] = instance.i18n.tr("Decommissioned");
 
       instance.statusImageDescriptors[ObjectStatus.NORMAL.getValue()] = ResourceManager.getImageDescriptor("icons/status/normal.png");
       instance.statusImageDescriptors[ObjectStatus.WARNING.getValue()] = ResourceManager.getImageDescriptor("icons/status/warning.png");
@@ -72,6 +73,7 @@ public final class StatusDisplayInfo
       instance.statusImageDescriptors[ObjectStatus.UNMANAGED.getValue()] = ResourceManager.getImageDescriptor("icons/status/unmanaged.png");
       instance.statusImageDescriptors[ObjectStatus.DISABLED.getValue()] = ResourceManager.getImageDescriptor("icons/status/disabled.png");
       instance.statusImageDescriptors[ObjectStatus.TESTING.getValue()] = ResourceManager.getImageDescriptor("icons/status/testing.png");
+      instance.statusImageDescriptors[ObjectStatus.DECOMMISSIONED.getValue()] = ResourceManager.getImageDescriptor("icons/status/decommissioned.png");
 
       for(int i = 0; i < instance.statusImageDescriptors.length; i++)
          instance.statusImages[i] = instance.statusImageDescriptors[i].createImage(display);
@@ -84,6 +86,7 @@ public final class StatusDisplayInfo
       instance.overlayImageDescriptors[ObjectStatus.UNMANAGED.getValue()] = ResourceManager.getImageDescriptor("icons/status/overlay/unmanaged.gif");
       instance.overlayImageDescriptors[ObjectStatus.DISABLED.getValue()] = ResourceManager.getImageDescriptor("icons/status/overlay/disabled.gif");
       instance.overlayImageDescriptors[ObjectStatus.TESTING.getValue()] = ResourceManager.getImageDescriptor("icons/status/overlay/testing.png");
+      instance.overlayImageDescriptors[ObjectStatus.DECOMMISSIONED.getValue()] = ResourceManager.getImageDescriptor("icons/status/overlay/decommissioned.gif");
 
       instance.colorCache = new ColorCache();
       instance.updateStatusColors();
@@ -126,6 +129,7 @@ public final class StatusDisplayInfo
       statusColor[6] = colorCache.create(ps.getAsColor("Status.Colors.Unmanaged", ThemeEngine.getForegroundColorDefinition("Status.Unmanaged")));
       statusColor[7] = colorCache.create(ps.getAsColor("Status.Colors.Disabled", ThemeEngine.getForegroundColorDefinition("Status.Disabled")));
       statusColor[8] = colorCache.create(ps.getAsColor("Status.Colors.Testing", ThemeEngine.getForegroundColorDefinition("Status.Testing")));
+      statusColor[9] = colorCache.create(ps.getAsColor("Status.Colors.Decommissioned", ThemeEngine.getForegroundColorDefinition("Status.Decommissioned")));
 
       statusBackgroundColor[0] = colorCache.create(ps.getAsColor("Status.BackgroundColors.Normal", ThemeEngine.getBackgroundColorDefinition("Status.Normal")));
       statusBackgroundColor[1] = colorCache.create(ps.getAsColor("Status.BackgroundColors.Warning", ThemeEngine.getBackgroundColorDefinition("Status.Warning")));
@@ -136,6 +140,7 @@ public final class StatusDisplayInfo
       statusBackgroundColor[6] = colorCache.create(ps.getAsColor("Status.BackgroundColors.Unmanaged", ThemeEngine.getBackgroundColorDefinition("Status.Unmanaged")));
       statusBackgroundColor[7] = colorCache.create(ps.getAsColor("Status.BackgroundColors.Disabled", ThemeEngine.getBackgroundColorDefinition("Status.Disabled")));
       statusBackgroundColor[8] = colorCache.create(ps.getAsColor("Status.BackgroundColors.Testing", ThemeEngine.getBackgroundColorDefinition("Status.Testing")));
+      statusBackgroundColor[9] = colorCache.create(ps.getAsColor("Status.BackgroundColors.Decommissioned", ThemeEngine.getBackgroundColorDefinition("Status.Decommissioned")));
    }
 
 	/**

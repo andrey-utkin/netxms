@@ -69,6 +69,7 @@ public class DefaultDarkTheme extends Theme
       elements.put("Status.Unmanaged", new ThemeElement(new RGB(192, 192, 192), new RGB(192, 192, 192)));
       elements.put("Status.Disabled", new ThemeElement(new RGB(128, 64, 0), new RGB(128, 64, 0)));
       elements.put("Status.Testing", new ThemeElement(new RGB(255, 128, 255), new RGB(255, 128, 255)));
+      elements.put("Status.Decommissioned", new ThemeElement(new RGB(192, 192, 192), new RGB(192, 192, 192)));
       elements.put("StatusMap.Text", new ThemeElement(null, new RGB(0, 0, 0)));
       elements.put("TextInput.Error", new ThemeElement(new RGB(48, 0, 0), null));
    }
