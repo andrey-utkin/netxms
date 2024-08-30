@@ -34,6 +34,7 @@ import org.netxms.client.NXCSession;
 import org.netxms.client.PollState;
 import org.netxms.client.Table;
 import org.netxms.client.constants.DataOrigin;
+import org.netxms.client.constants.DataType;
 import org.netxms.client.constants.ObjectPollType;
 import org.netxms.client.constants.ObjectStatus;
 import org.netxms.client.constants.Severity;
@@ -117,6 +118,48 @@ public class CollectorTest extends AbstractSessionTest
 
       assertTrue(list.length > 0); // Checking that DCI has been created
 
+      dcc.close();
+      session.disconnect();
+   }
+
+   @Test
+   public void testDiscontinuityDelta() throws Exception
+   {
+      final NXCSession session = connectAndLogin();
+      session.syncObjects();
+
+      Collector testCollector = findOrCreateCollector(session, COLLECTOR_NAME);
+      assertNotNull(testCollector);
+
+      TestHelper.findAndDeleteDci(session, testCollector, DCI_DESCRIPTION);
+
+      DataCollectionConfiguration dcc = session.openDataCollectionConfiguration(testCollector.getObjectId());
+
+      final DataCollectionItem dci = new DataCollectionItem(dcc, 0);
+
+      dci.setOrigin(DataOrigin.INTERNAL);
+      dci.setDescription(DCI_DESCRIPTION);
+      dci.setName(DUMMY);
+      dci.setPollingScheduleType(DataCollectionObject.POLLING_SCHEDULE_CUSTOM);
+      dci.setPollingInterval(Integer.toString(1));
+      dci.setTransformationScript("return -GetCurrentTimeMs();");
+      dci.setDataType(DataType.COUNTER64);
+      dci.setDeltaCalculation(DataCollectionItem.DELTA_SIMPLE);
+
+      dcc.modifyObject(dci);
+      Thread.sleep(3000);
+
+      DciValue[] list = session.getLastValues(testCollector.getObjectId());
+
+      // Negative delta, (discontinuity, per NX-2461) is expected to happen every time.
+      // Expected behaviour without NX-2461 fix: one or more readings with 0 (zero) value.
+      // Expected behaviour with    NX-2461 fix: one or more readings with error status or null value, or no readings available.
+      // Actual behaviour   without MX-2461 fix: 1 reading, value ""
+      // Actual behaviour   with    MX-2461 fix: 1 reading, value ""
+
+      System.out.println("first list element: " + list[0]);
+      assertEquals("", list[0].getValue());
+      assertEquals(1, list.length);
       dcc.close();
       session.disconnect();
    }
